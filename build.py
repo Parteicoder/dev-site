@@ -128,6 +128,27 @@ def main() -> None:
 <p>Every package page mirrors its GitHub README, changelog and pub.dev data. The site is rebuilt automatically, so it always shows the latest release.</p>"""
     (DIST / "index.html").write_text(page("./", "Plakat Kompass Developers - open-source Flutter packages", intro, "", body), encoding="utf-8")
 
+    privacy = """<nav class="crumbs"><a href="../">Packages</a> / Privacy</nav>
+<h1>Privacy</h1>
+<p class="lead">This notice covers only this website, dev.plakat-kompass.de. It is separate from the Plakat Kompass app and its privacy policy.</p>
+<h2>Who is responsible</h2>
+<p>The operator named in the <a href="https://plakat-kompass.de/impressum.html">Impressum</a>. Questions about your data: <a href="mailto:support@plakat-kompass.de">support@plakat-kompass.de</a>.</p>
+<h2>What happens when you visit</h2>
+<p>The site is hosted by Cloudflare. To deliver the pages and to protect against abuse, Cloudflare processes technical request data, such as your IP address, the requested URL, browser details and the time of the request (Art. 6(1)(f) GDPR, legitimate interest in a secure and working website). Cloudflare may process this data outside the EU, see the <a href="https://www.cloudflare.com/privacypolicy/">Cloudflare privacy policy</a>. We do not keep access logs ourselves.</p>
+<h2>What we do not do</h2>
+<ul>
+<li>No cookies, no local storage, no tracking, no analytics.</li>
+<li>No forms and no accounts.</li>
+<li>No third-party content: styles and images are served from this site.</li>
+</ul>
+<p>Links to GitHub and pub.dev are plain links. If you follow one, the privacy policy of that site applies.</p>
+<h2>Your rights</h2>
+<p>You can ask for access, correction, deletion, restriction and object to processing (Art. 15 to 21 GDPR), and you can complain to a data protection supervisory authority.</p>"""
+    (DIST / "privacy").mkdir()
+    (DIST / "privacy" / "index.html").write_text(
+        page("../", "Privacy | Plakat Kompass Developers", "Privacy notice for dev.plakat-kompass.de", "privacy/", privacy), encoding="utf-8"
+    )
+
     shutil.copy(ROOT / "static" / "style.css", DIST / "style.css")
     (DIST / "_headers").write_text(
         "/*\n  Strict-Transport-Security: max-age=86400\n  X-Frame-Options: DENY\n  Referrer-Policy: no-referrer\n"
@@ -136,7 +157,7 @@ def main() -> None:
         encoding="utf-8",
     )
     (DIST / "robots.txt").write_text(f"User-agent: *\nAllow: /\n\nSitemap: {SITE}/sitemap.xml\n", encoding="utf-8")
-    urls = [f"{SITE}/"] + [f"{SITE}/{p['name']}/" for p in packages]
+    urls = [f"{SITE}/"] + [f"{SITE}/{p['name']}/" for p in packages] + [f"{SITE}/privacy/"]
     (DIST / "sitemap.xml").write_text(
         '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
         + "".join(f"  <url><loc>{u}</loc></url>\n" for u in urls) + "</urlset>\n",
