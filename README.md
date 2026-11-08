@@ -23,4 +23,4 @@ python -m http.server -d dist
 
 Cloudflare Workers with static assets (`wrangler.jsonc`, assets from `dist`). Build command
 `pip install -r requirements.txt && python build.py`, deploy command `npx wrangler deploy`.
-The nightly workflow calls a Cloudflare deploy hook (secret `CF_PAGES_DEPLOY_HOOK`) to rebuild.
+The nightly workflow builds the site and, only if the output changed, commits `.build-hash`; that push makes Cloudflare deploy the fresh pages. No secrets needed.

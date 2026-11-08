@@ -1,20 +1,33 @@
 name: Rebuild site
-# The site is built by Cloudflare Pages from this repo. This workflow only asks Cloudflare for a fresh
-# build every night (and on demand), so the pages follow new releases on pub.dev and GitHub.
+# Cloudflare builds and deploys the site on every push to main. Package pages mirror pub.dev and GitHub,
+# so this workflow builds the site every night and, only if the result changed, commits a new hash.
+# That push makes Cloudflare deploy the fresh pages. No secrets needed.
 on:
   schedule:
     - cron: "17 3 * * *"
   workflow_dispatch:
 
-permissions: {}
+permissions:
+  contents: write
 
 jobs:
   rebuild:
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger Cloudflare Pages deploy hook
-        env:
-          HOOK: ${{ secrets.CF_PAGES_DEPLOY_HOOK }}
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install -r requirements.txt
+      - run: python build.py
+      - name: Commit if the built site changed
         run: |
-          if [ -z "$HOOK" ]; then echo "CF_PAGES_DEPLOY_HOOK is not set, skipping"; exit 0; fi
-          curl -fsS -X POST "$HOOK" > /dev/null
+          new=$(find dist -type f | sort | xargs sha256sum | sha256sum | cut -d' ' -f1)
+          old=$(cat .build-hash 2>/dev/null || true)
+          if [ "$new" = "$old" ]; then echo "No change"; exit 0; fi
+          echo "$new" > .build-hash
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add .build-hash
+          git commit -m "Site content changed, rebuild"
+          git push
