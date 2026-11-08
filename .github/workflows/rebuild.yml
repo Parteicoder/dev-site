@@ -1,0 +1,20 @@
+name: Rebuild site
+# The site is built by Cloudflare Pages from this repo. This workflow only asks Cloudflare for a fresh
+# build every night (and on demand), so the pages follow new releases on pub.dev and GitHub.
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Cloudflare Pages deploy hook
+        env:
+          HOOK: ${{ secrets.CF_PAGES_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$HOOK" ]; then echo "CF_PAGES_DEPLOY_HOOK is not set, skipping"; exit 0; fi
+          curl -fsS -X POST "$HOOK" > /dev/null
